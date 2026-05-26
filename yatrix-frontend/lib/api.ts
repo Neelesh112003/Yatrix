@@ -1,24 +1,27 @@
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-//  Helper to get JWT token from localStorage 
-
+// ─────────────────────────────────────────────────────────────
+// Helper to get JWT token from localStorage
+// ─────────────────────────────────────────────────────────────
 const getToken = (): string | null => {
-  if (typeof window === "undefined") return null; // Guard for SSR
+  if (typeof window === "undefined") return null;
   return localStorage.getItem("token");
 };
 
-// Core fetch wrapper 
-const request = async (
+// ─────────────────────────────────────────────────────────────
+// Core fetch wrapper (FIXED: now generic instead of unknown)
+// ─────────────────────────────────────────────────────────────
+const request = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<unknown> => {
+): Promise<T> => {
   const token = getToken();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...((options.headers as object) || {}),
+    ...(options.headers as HeadersInit),
   };
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -32,81 +35,107 @@ const request = async (
     throw new Error(data.message || "Something went wrong");
   }
 
-  return data;
+  return data as T;
 };
 
-// ─── Auth API calls ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Auth API calls
+// ─────────────────────────────────────────────────────────────
 export const authAPI = {
   register: (name: string, email: string, password: string) =>
-    request("/auth/register", {
+    request<any>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     }),
 
   login: (email: string, password: string) =>
-    request("/auth/login", {
+    request<any>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
 
-  getMe: () => request("/auth/me"),
+  getMe: () => request<any>("/auth/me"),
 };
 
-// Destination API 
+// ─────────────────────────────────────────────────────────────
+// Destination API
+// ─────────────────────────────────────────────────────────────
 export const destinationAPI = {
-  // Get all 4 cities for home/dashboard page
-  getAll: () => request("/destinations"),
- 
-  // Get one city with sub-destinations + trains + hotels + transport
-  getByCity: (city: string) => request(`/destinations/${city}`),
- 
-  // Filtered calls (used on recommendation page Day 3)
-  getHotels: (city: string, maxPrice?: number, tripType?: string) => {
+  getAll: () => request<any>("/destinations"),
+
+  getByCity: (city: string) =>
+    request<any>(`/destinations/${city}`),
+
+  getHotels: (
+    city: string,
+    maxPrice?: number,
+    tripType?: string
+  ) => {
     let query = "";
     if (maxPrice) query += `?maxPrice=${maxPrice}`;
     if (tripType) query += `${query ? "&" : "?"}tripType=${tripType}`;
-    return request(`/destinations/${city}/hotels${query}`);
+
+    return request<any>(`/destinations/${city}/hotels${query}`);
   },
+
   getTrains: (city: string, fromCity?: string) => {
-  const query = fromCity ? `?from=${fromCity}` : "";
-  return request(`/destinations/${city}/trains${query}`);
-},
-  getTransport: (city: string) => request(`/destinations/${city}/transport`),
+    const query = fromCity ? `?from=${fromCity}` : "";
+    return request<any>(`/destinations/${city}/trains${query}`);
+  },
+
+  getTransport: (city: string) =>
+    request<any>(`/destinations/${city}/transport`),
 };
 
-// Trip API 
-
+// ─────────────────────────────────────────────────────────────
+// Trip API
+// ─────────────────────────────────────────────────────────────
 export const tripAPI = {
-  // Create new trip + triggers AI itinerary generation
   create: (tripData: object) =>
-    request("/trips", { method: "POST", body: JSON.stringify(tripData) }),
- 
-  // Get all trips for logged-in user
-  getAll: () => request("/trips"),
- 
-  // Get single trip by ID
-  getById: (id: string) => request(`/trips/${id}`),
- 
-  // Save user-edited itinerary
+    request<any>("/trips", {
+      method: "POST",
+      body: JSON.stringify(tripData),
+    }),
+
+  getAll: () => request<any>("/trips"),
+
+  getById: (id: string) =>
+    request<any>(`/trips/${id}`),
+
   updateItinerary: (id: string, itinerary: object[]) =>
-    request(`/trips/${id}/itinerary`, { method: "PUT", body: JSON.stringify({ itinerary }) }),
- 
-  // Regenerate AI itinerary for existing trip
+    request<any>(`/trips/${id}/itinerary`, {
+      method: "PUT",
+      body: JSON.stringify({ itinerary }),
+    }),
+
   regenerate: (id: string) =>
-    request(`/trips/${id}/regenerate`, { method: "POST" }),
- 
-  // Delete a trip
+    request<any>(`/trips/${id}/regenerate`, {
+      method: "POST",
+    }),
+
   delete: (id: string) =>
-    request(`/trips/${id}`, { method: "DELETE" }),
+    request<any>(`/trips/${id}`, {
+      method: "DELETE",
+    }),
 };
 
-// ─── Booking API ──────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Booking API
+// ─────────────────────────────────────────────────────────────
 export const bookingAPI = {
   confirm: (tripId: string) =>
-    request("/bookings/confirm", { method: "POST", body: JSON.stringify({ tripId }) }),
-  getByTrip: (tripId: string) => request(`/bookings/${tripId}`),
+    request<any>("/bookings/confirm", {
+      method: "POST",
+      body: JSON.stringify({ tripId }),
+    }),
+
+  getByTrip: (tripId: string) =>
+    request<any>(`/bookings/${tripId}`),
+
   resendEmail: (tripId: string) =>
-    request(`/bookings/${tripId}/resend-email`, { method: "POST" }),
+    request<any>(`/bookings/${tripId}/resend-email`, {
+      method: "POST",
+    }),
 };
 
 export default request;

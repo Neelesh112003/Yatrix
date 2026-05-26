@@ -1,19 +1,26 @@
 "use client";
 // frontend/components/WeatherWidget.tsx
-// Shows current weather for a city — uses Open-Meteo free API (no key needed)
 
 import { useWeather } from "@/lib/useWeather";
-import {
-  Cloud,
-  CloudRain,
-  Sun,
-  Wind,
-  Droplets,
-  Eye,
-} from "lucide-react";
+import { Droplets, Wind, Eye } from "lucide-react";
+
+type WeatherData = {
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  windSpeed: number;
+  visibility?: number | null; // ✅ FIXED (this was causing build error)
+  weatherCode: number;
+  emoji: string;
+  label: string;
+};
 
 export default function WeatherWidget({ city }: { city: string }) {
-  const { weather, loading, error } = useWeather(city);
+  const { weather, loading, error } = useWeather(city) as {
+    weather: WeatherData | null;
+    loading: boolean;
+    error: string | null;
+  };
 
   if (loading) {
     return (
@@ -31,7 +38,9 @@ export default function WeatherWidget({ city }: { city: string }) {
   if (error || !weather) {
     return (
       <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-center">
-        <p className="text-xs text-slate-400 font-medium">Weather unavailable</p>
+        <p className="text-xs text-slate-400 font-medium">
+          Weather unavailable
+        </p>
       </div>
     );
   }
@@ -39,11 +48,11 @@ export default function WeatherWidget({ city }: { city: string }) {
   // Dynamic accent color based on weather
   const getAccent = () => {
     const code = weather.weatherCode;
-    if (code === 0) return "from-amber-400 to-orange-500"; // Clear
-    if (code <= 2) return "from-sky-400 to-blue-500"; // Partly cloudy
-    if (code <= 49) return "from-slate-400 to-gray-500"; // Cloudy
-    if (code <= 69) return "from-indigo-400 to-blue-600"; // Rain
-    return "from-purple-400 to-indigo-600"; // Snow/Storm
+    if (code === 0) return "from-amber-400 to-orange-500";
+    if (code <= 2) return "from-sky-400 to-blue-500";
+    if (code <= 49) return "from-slate-400 to-gray-500";
+    if (code <= 69) return "from-indigo-400 to-blue-600";
+    return "from-purple-400 to-indigo-600";
   };
 
   const accent = getAccent();
@@ -67,12 +76,16 @@ export default function WeatherWidget({ city }: { city: string }) {
           <span className="text-5xl leading-none">{weather.emoji}</span>
         </div>
 
-        {/* Condition label */}
-        <p className="text-xs text-slate-500 font-medium mb-4 italic">{weather.label}</p>
+        {/* Condition */}
+        <p className="text-xs text-slate-500 font-medium mb-4 italic">
+          {weather.label}
+        </p>
 
-        {/* Main temperature */}
+        {/* Temperature */}
         <div className="flex items-baseline gap-1 mb-6">
-          <span className="text-5xl font-black text-slate-900">{weather.temperature}</span>
+          <span className="text-5xl font-black text-slate-900">
+            {weather.temperature}
+          </span>
           <span className="text-xl font-bold text-slate-600">°C</span>
         </div>
 
@@ -84,7 +97,9 @@ export default function WeatherWidget({ city }: { city: string }) {
               Feels Like
             </p>
             <div className="flex items-baseline gap-0.5">
-              <span className="text-xl font-bold text-slate-900">{weather.feelsLike}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {weather.feelsLike}
+              </span>
               <span className="text-xs text-slate-500">°C</span>
             </div>
           </div>
@@ -96,38 +111,48 @@ export default function WeatherWidget({ city }: { city: string }) {
               Humidity
             </p>
             <div className="flex items-baseline gap-0.5">
-              <span className="text-xl font-bold text-slate-900">{weather.humidity}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {weather.humidity}
+              </span>
               <span className="text-xs text-slate-500">%</span>
             </div>
           </div>
 
-          {/* Wind speed */}
+          {/* Wind */}
           <div className="bg-slate-50 rounded-xl p-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
               <Wind className="w-3 h-3" />
               Wind
             </p>
             <div className="flex items-baseline gap-0.5">
-              <span className="text-xl font-bold text-slate-900">{weather.windSpeed}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {weather.windSpeed}
+              </span>
               <span className="text-xs text-slate-500">km/h</span>
             </div>
           </div>
 
-          {/* Visibility (if available) */}
+          {/* Visibility (FIXED) */}
           <div className="bg-slate-50 rounded-xl p-3">
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
               <Eye className="w-3 h-3" />
               Visibility
             </p>
             <div className="flex items-baseline gap-0.5">
-              <span className="text-xl font-bold text-slate-900">{weather.visibility || "—"}</span>
-              <span className="text-xs text-slate-500">{weather.visibility ? "km" : ""}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {weather.visibility ?? "—"}
+              </span>
+              <span className="text-xs text-slate-500">
+                {weather.visibility != null ? "km" : ""}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Footer attribution */}
-        <p className="text-[10px] text-slate-300 text-right">via Open-Meteo</p>
+        {/* Footer */}
+        <p className="text-[10px] text-slate-300 text-right">
+          via Open-Meteo
+        </p>
       </div>
     </div>
   );
