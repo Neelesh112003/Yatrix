@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -23,7 +25,8 @@ import {
 } from "lucide-react";
 import { bookingAPI } from "@/lib/api";
 
-export default function BookingPage() {
+// ── Inner component that uses useSearchParams ──────────────────────────────
+function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tripId = searchParams.get("tripId");
@@ -126,7 +129,7 @@ export default function BookingPage() {
           <CircleAlert className="mx-auto h-10 w-10 text-red-500" />
           <h2 className="mt-4 text-xl font-semibold text-slate-900">Booking not found</h2>
           <p className="mt-2 text-sm text-slate-600">
-            {error || "We couldn’t find your booking details."}
+            {error || "We couldn't find your booking details."}
           </p>
           <button
             onClick={() => router.push("/my-trips")}
@@ -180,30 +183,10 @@ export default function BookingPage() {
             </div>
 
             <div className="grid gap-3 px-6 py-5 sm:grid-cols-2 xl:grid-cols-4">
-              <TopStat
-                icon={MapPin}
-                label="Destination"
-                value={snap.city}
-                accent="text-blue-600"
-              />
-              <TopStat
-                icon={CalendarDays}
-                label="Dates"
-                value={`${startDate} → ${endDate}`}
-                accent="text-violet-600"
-              />
-              <TopStat
-                icon={Users}
-                label="Travelers"
-                value={`${snap.travelers} person(s)`}
-                accent="text-emerald-600"
-              />
-              <TopStat
-                icon={Wallet}
-                label="Total paid"
-                value={`₹${booking.totalCost.toLocaleString()}`}
-                accent="text-slate-900"
-              />
+              <TopStat icon={MapPin} label="Destination" value={snap.city} accent="text-blue-600" />
+              <TopStat icon={CalendarDays} label="Dates" value={`${startDate} → ${endDate}`} accent="text-violet-600" />
+              <TopStat icon={Users} label="Travelers" value={`${snap.travelers} person(s)`} accent="text-emerald-600" />
+              <TopStat icon={Wallet} label="Total paid" value={`₹${booking.totalCost.toLocaleString()}`} accent="text-slate-900" />
             </div>
           </section>
 
@@ -234,20 +217,12 @@ export default function BookingPage() {
 
             <div className="space-y-3">
               <Row icon={MapPin} label="Destination" value={snap.city} />
-              <Row
-  icon={MapPin}
-  label="From"
-  value={snap.fromCity || snap.selectedTrain?.fromCity || "—"}
-/>
+              <Row icon={MapPin} label="From" value={snap.fromCity || snap.selectedTrain?.fromCity || "—"} />
               <Row icon={CalendarDays} label="Dates" value={`${startDate} → ${endDate}`} />
               <Row icon={Clock3} label="Duration" value={`${snap.numberOfDays} day(s)`} />
               <Row icon={Users} label="Travelers" value={`${snap.travelers} person(s)`} />
               {snap.selectedTrain && (
-                <Row
-                  icon={Train}
-                  label="Train"
-                  value={`${snap.selectedTrain.name} (${snap.selectedTrain.selectedClass})`}
-                />
+                <Row icon={Train} label="Train" value={`${snap.selectedTrain.name} (${snap.selectedTrain.selectedClass})`} />
               )}
               {snap.selectedHotel && (
                 <Row icon={BedDouble} label="Hotel" value={snap.selectedHotel.name} />
@@ -286,13 +261,7 @@ export default function BookingPage() {
                   </p>
                 </div>
 
-                <div
-                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    booking.emailSent
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
+                <div className={`rounded-full px-2.5 py-1 text-xs font-semibold ${booking.emailSent ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                   {booking.emailSent ? "Sent" : "Pending"}
                 </div>
               </div>
@@ -303,20 +272,11 @@ export default function BookingPage() {
                 className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {resending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
+                  <><Loader2 className="h-4 w-4 animate-spin" />Sending...</>
                 ) : resent ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    Sent successfully
-                  </>
+                  <><CheckCircle2 className="h-4 w-4 text-green-600" />Sent successfully</>
                 ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Resend Email
-                  </>
+                  <><RefreshCw className="h-4 w-4" />Resend Email</>
                 )}
               </button>
 
@@ -358,17 +318,29 @@ export default function BookingPage() {
   );
 }
 
-function TopStat({
-  icon: Icon,
-  label,
-  value,
-  accent,
-}: {
-  icon: any;
-  label: string;
-  value: string;
-  accent?: string;
-}) {
+// ── Default export wraps BookingContent in Suspense ────────────────────────
+export default function BookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 px-6 py-8 text-center">
+              <div className="mx-auto h-16 w-16 animate-pulse rounded-full bg-slate-200" />
+              <div className="mx-auto mt-4 h-8 w-64 animate-pulse rounded bg-slate-200" />
+              <div className="mx-auto mt-3 h-4 w-80 animate-pulse rounded bg-slate-100" />
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <BookingContent />
+    </Suspense>
+  );
+}
+
+// ── Shared sub-components ──────────────────────────────────────────────────
+function TopStat({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent?: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -380,24 +352,14 @@ function TopStat({
   );
 }
 
-function Row({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon?: any;
-  label: string;
-  value: string;
-}) {
+function Row({ icon: Icon, label, value }: { icon?: any; label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3 last:border-b-0 last:pb-0">
       <div className="flex min-w-0 items-center gap-2 text-sm text-slate-500">
         {Icon ? <Icon className="h-4 w-4 shrink-0" /> : null}
         <span>{label}</span>
       </div>
-      <div className="max-w-[60%] text-right text-sm text-slate-800">
-        {value}
-      </div>
+      <div className="max-w-[60%] text-right text-sm text-slate-800">{value}</div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MapPin, Train, CalendarDays, CalendarCheck2, CurrencyIcon,
@@ -22,7 +22,7 @@ const INTERESTS = [
 
 const CITIES = ["Delhi", "Jaipur", "Chandigarh", "Jabalpur"];
 
-export default function PlanPage() {
+function PlanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -280,5 +280,24 @@ export default function PlanPage() {
         <ArrowRight className="w-4 h-4" />
       </button>
     </div>
+  );
+}
+
+export default function PlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
+          <div className="h-16 animate-pulse rounded-2xl bg-green-50 border border-green-100" />
+          <div className="h-40 animate-pulse rounded-2xl bg-white border border-gray-100" />
+          <div className="h-32 animate-pulse rounded-2xl bg-white border border-gray-100" />
+          <div className="h-48 animate-pulse rounded-2xl bg-white border border-gray-100" />
+          <div className="h-32 animate-pulse rounded-2xl bg-white border border-gray-100" />
+          <div className="h-14 animate-pulse rounded-2xl bg-green-600/20" />
+        </div>
+      }
+    >
+      <PlanContent />
+    </Suspense>
   );
 }

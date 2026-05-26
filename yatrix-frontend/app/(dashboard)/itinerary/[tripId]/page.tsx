@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link"; 
-import { Button } from "@/components/ui/button"; // Adjust path as needed for your project
+import { Button } from "@/components/ui-1/button"; // Adjust path as needed for your project
 import { tripAPI } from "@/lib/api";
 import { generateItineraryPDF } from "@/lib/generatePDF";
 import {
