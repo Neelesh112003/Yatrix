@@ -25,7 +25,10 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const data = await authAPI.login(formData.email, formData.password);
+      const data = await authAPI.login(
+  formData.email,
+  formData.password
+) as any;
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/dashboard");
