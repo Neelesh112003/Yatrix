@@ -17,15 +17,14 @@ const app = express();
 //  Global Middleware 
 
 // CORS — allow requests from the frontend dev server
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      process.env.FRONTEND_URL,        // your Vercel URL from .env
-    ].filter(Boolean),
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://yatrix.vercel.app",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+}));
 
 // Parse incoming JSON request bodies
 app.use(express.json());
