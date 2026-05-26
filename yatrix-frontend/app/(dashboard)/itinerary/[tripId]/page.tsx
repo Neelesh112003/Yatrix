@@ -62,7 +62,7 @@ export default function ItineraryPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await tripAPI.getById(tripId as string);
+        const res: any = await tripAPI.getById(tripId as string);
         setTrip(res.data);
         setItinerary(res.data.itinerary || []);
       } catch (err: any) {
@@ -109,7 +109,7 @@ export default function ItineraryPage() {
     setRegenerating(true);
     setError("");
     try {
-      const res = await tripAPI.regenerate(tripId as string);
+      const res: any = await tripAPI.regenerate(tripId as string);
       setItinerary(res.data.itinerary);
       setSaved(false);
     } catch (err: any) {

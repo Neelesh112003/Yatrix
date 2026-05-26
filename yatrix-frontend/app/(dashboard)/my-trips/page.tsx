@@ -68,7 +68,7 @@ export default function MyTripsPage() {
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const res = await tripAPI.getAll();
+        const res: any = await tripAPI.getAll();
         setTrips(res.data);
       } catch {
         setError("Failed to load trips.");
