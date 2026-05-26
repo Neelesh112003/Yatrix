@@ -42,7 +42,7 @@ export default function BookingPage() {
 
     const fetchBooking = async () => {
       try {
-        const res = await bookingAPI.getByTrip(tripId);
+        const res = await bookingAPI.getByTrip(tripId) as any;
         setBooking(res.data);
       } catch (err: any) {
         setError("Failed to load booking details.");
