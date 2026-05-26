@@ -1,5 +1,4 @@
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // ─────────────────────────────────────────────────────────────
 // Helper to get JWT token from localStorage
@@ -10,12 +9,16 @@ const getToken = (): string | null => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Core fetch wrapper (FIXED: now generic instead of unknown)
+// Core fetch wrapper (FIXED & PRODUCTION READY)
 // ─────────────────────────────────────────────────────────────
 const request = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
+  if (!BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL is not defined");
+  }
+
   const token = getToken();
 
   const headers: HeadersInit = {
@@ -24,18 +27,25 @@ const request = async <T = any>(
     ...(options.headers as HeadersInit),
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: "include", // 🔥 IMPORTANT FIX
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    if (!response.ok) {
+      throw new Error(data.message || "Something went wrong");
+    }
+
+    return data as T;
+  } catch (error: any) {
+    // 🔥 This makes debugging MUCH easier
+    console.error("API Error:", error.message);
+    throw new Error(error.message || "Network error (Failed to fetch)");
   }
-
-  return data as T;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -66,11 +76,7 @@ export const destinationAPI = {
   getByCity: (city: string) =>
     request<any>(`/destinations/${city}`),
 
-  getHotels: (
-    city: string,
-    maxPrice?: number,
-    tripType?: string
-  ) => {
+  getHotels: (city: string, maxPrice?: number, tripType?: string) => {
     let query = "";
     if (maxPrice) query += `?maxPrice=${maxPrice}`;
     if (tripType) query += `${query ? "&" : "?"}tripType=${tripType}`;
