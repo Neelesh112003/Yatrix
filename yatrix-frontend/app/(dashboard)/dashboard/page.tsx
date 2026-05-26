@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
     const fetchCities = async () => {
       try {
-        const data = await destinationAPI.getAll();
+        const data: any = await destinationAPI.getAll();
         setCities(data.data);
       } catch (err: any) {
         setError("Failed to load destinations.");

@@ -79,7 +79,7 @@ export default function CityDetailPage() {
   useEffect(() => {
     const fetchCity = async () => {
       try {
-        const res = await destinationAPI.getByCity(city as string);
+        const res: any = await destinationAPI.getByCity(city as string);
         setData(res.data.destination);
       } catch (err: any) {
         setError("Failed to load city details.");
