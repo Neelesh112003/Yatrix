@@ -8,7 +8,7 @@ const {
   getTransportByCity,
 } = require("../controllers/destinationController");
 
-const { protect } = require("../middleware/authmiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
 // All routes protected — user must be logged in
 router.get("/", protect, getAllDestinations);                        // GET /api/destinations
